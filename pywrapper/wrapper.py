@@ -1,14 +1,39 @@
 import urllib, urllib2, json, base64
 
-class wrapper:
-    # testing url
-    task_url = "https://staging.mobileworks.com/api/v2/task/"
+
+class Task:
     
-    # production url
-#    task_url = "https://work.mobileworks.com/api/v2/task/"
+    params = ['instructions', 'fields', 'resource', 'taskid', 'resourcetype', 'priority', 'workflow', 'redundancy']
+    
+    instructions = ''
+    fields = []
+    
+    def __init__( self, **kwargs ):
+        for p in self.params:
+            if p in kwargs:
+                setattr( self, p, kwargs[p] )
+            
+    def addField( self, name, type ):
+        self.fields.append( {name: type} )
+        
+    def toJson( self ):
+        d = {}
+        for p in self.params:
+            if hasattr( self, p ):
+                d[p] = getattr( self, p )
+        return json.dumps( d )
+        
+
+class Wrapper:
+    
+    PRODUCTION = False
     
     def __init__( self, username, password ):
         self.credentials = base64.encodestring( username + ':' + password )[:-1]
+        if self.PRODUCTION:
+            self.task_url = "https://work.mobileworks.com/api/v2/task/"
+        else:
+            self.task_url = "https://staging.mobileworks.com/api/v2/task/"
         
 
     def request( self, taskID = None ):
@@ -18,23 +43,33 @@ class wrapper:
         req = urllib2.Request( url )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         return req
+    
+    def getTaskID( self, taskLocation ):
+        """
+        Parses the task ID from the task location ( url )
+        """
+        token = '/task/'
+        pos = taskLocation.rfind( token ) + len( token )
+        return taskLocation[pos:].strip( '/' )
 
-    def postTask( self, instructions, resource, fields ):
-        query = {
-            'instructions': instructions,
-            'resource': resource,
-            'fields': fields
-        }
-        response = urllib2.urlopen( self.request(), json.dumps( query ) )
-        return json.loads( response.read() )
+    def postTask( self, task ):
+        """
+        Posts a task to MobileWorks.
+        `task` must be an instance of the Task class.
+        """
+        response = urllib2.urlopen( self.request(), task.toJson() )
+        return self.getTaskID( json.loads( response.read() )['Location'] )
         
     def taskResult( self, taskID ):
+        """
+        Gets the result for the task specified by `taskID`
+        """
         return json.loads( urllib2.urlopen( self.request( taskID ) ).read() )
 
 
 def main():
     print 'hello!'
-    w = wrapper( 'prayag', 'root' )
 
 if __name__ == '__main__':
     main()
+    w = Wrapper( 'prayag', 'root' )
