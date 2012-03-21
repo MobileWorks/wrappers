@@ -1,28 +1,16 @@
-import urllib, urllib2, json, base64
+import urllib2, json, base64
 
 
-class Task:
+class Request( urllib2.Request ):
     
-    params = ['instructions', 'fields', 'resource', 'taskid', 'resourcetype', 'priority', 'workflow', 'redundancy']
+    def __init__( self, url, data = None, headers = {},
+                 origin_req_host = None, unverifiable = False, method = None ):
+        self._method = method
+        urllib2.Request.__init__( self, url, data, headers, origin_req_host, unverifiable )
     
-    instructions = ''
-    fields = []
+    def get_method( self ):
+        return self._method if self._method else urllib2.Request.get_method( self )
     
-    def __init__( self, **kwargs ):
-        for p in self.params:
-            if p in kwargs:
-                setattr( self, p, kwargs[p] )
-            
-    def addField( self, name, type ):
-        self.fields.append( {name: type} )
-        
-    def toJson( self ):
-        d = {}
-        for p in self.params:
-            if hasattr( self, p ):
-                d[p] = getattr( self, p )
-        return json.dumps( d )
-        
 
 class Wrapper:
     
@@ -31,41 +19,75 @@ class Wrapper:
     def __init__( self, username, password ):
         self.credentials = base64.encodestring( username + ':' + password )[:-1]
         if self.PRODUCTION:
-            self.task_url = "https://work.mobileworks.com/api/v2/task/"
+            self.task_url = 'https://work.mobileworks.com/api/v2/task/'
+            self.job_url = 'https://work.mobileworks.com/api/v2/job/'
         else:
-            self.task_url = "https://staging.mobileworks.com/api/v2/task/"
+            self.task_url = 'https://staging.mobileworks.com/api/v2/task/'
+            self.job_url = 'https://staging.mobileworks.com/api/v2/job/'
         
 
-    def request( self, taskID = None ):
-        url = self.task_url
-        if taskID is not None:
-            url += '%s/' % taskID
-        req = urllib2.Request( url )
+    def request( self, url, method = None ):
+        req = Request( url, method = method )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         return req
     
-    def getTaskID( self, taskLocation ):
+    def parseTaskID( self, taskUrl ):
         """
         Parses the task ID from the task location ( url )
         """
         token = '/task/'
-        pos = taskLocation.rfind( token ) + len( token )
-        return taskLocation[pos:].strip( '/' )
+        pos = taskUrl.rfind( token ) + len( token )
+        return taskUrl[pos:].rstrip( '/' )
 
-    def postTask( self, task ):
+    def postTask( self, **taskParams ):
         """
-        Posts a task to MobileWorks.
-        `task` must be an instance of the Task class.
+        Posts a task to MobileWorks and returns the url of the created task.
         """
-        response = urllib2.urlopen( self.request(), task.toJson() )
-        return self.getTaskID( json.loads( response.read() )['Location'] )
+        response = urllib2.urlopen( self.request( self.task_url ), json.dumps( taskParams ) )
+        content = response.read()
+        response.close()
+        return json.loads( content )['Location']
         
-    def taskResult( self, taskID ):
+    def retrieveTask( self, taskUrl ):
         """
-        Gets the result for the task specified by `taskID`
+        Gets the result for the task located in `taskUrl`.
         """
-        return json.loads( urllib2.urlopen( self.request( taskID ) ).read() )
-
+        return json.loads( urllib2.urlopen( self.request( taskUrl ) ).read() )
+    
+    def deleteTask( self, taskUrl ):
+        """
+        Deletes a task.
+        """
+        try:
+            response = urllib2.urlopen( self.request( taskUrl, 'DELETE' ) )
+            return response
+        except urllib2.HTTPError, e:
+            return e
+        
+    def postJob( self, **jobParams ):
+        """
+        Posts a job to MobileWorks and returns the url of the created job.
+        """
+        response = urllib2.urlopen( self.request( self.job_url ), json.dumps( jobParams ) )
+        content = response.read()
+        response.close()
+        return json.loads( content )['Location']
+    
+    def retrieveJob( self, jobUrl ):
+        """
+        Gets the result for the job located in `jobUrl`.
+        """
+        return json.loads( urllib2.urlopen( self.request( jobUrl ) ).read() )
+    
+    def deleteJob( self, jobUrl ):
+        """
+        Deletes a job.
+        """
+        try:
+            response = urllib2.urlopen( self.request( jobUrl, 'DELETE' ) )
+            return response
+        except urllib2.HTTPError, e:
+            return e
 
 def main():
     print 'hello!'
