@@ -1,3 +1,7 @@
+
+# Should I return the location or the whole json after posting?
+# error handling, what's best?
+
 import urllib2, json, base64
 
 
@@ -26,7 +30,7 @@ class MobileWorks:
             self.job_url = 'https://staging.mobileworks.com/api/v2/job/'
         
 
-    def request( self, url, method = None, postData = None ):
+    def makeRequest( self, url, method = None, postData = None ):
         req = Request( url, method = method, data = postData )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         response = urllib2.urlopen( req )
@@ -36,39 +40,39 @@ class MobileWorks:
     
     def postTask( self, **taskParams ):
         """
-        Posts a task to MobileWorks and returns the url of the created task.
+        Posts a task to MobileWorks and returns the URL of the created task.
         """
-        return self.request( self.task_url, 'POST', json.dumps( taskParams ) )['Location']
+        return self.makeRequest( self.task_url, 'POST', json.dumps( taskParams ) )['Location']
         
     def retrieveTask( self, taskUrl ):
         """
-        Gets the result of the task located in `taskUrl`.
+        Gets the information of the task located in `taskUrl`.
         """
-        return self.request( taskUrl )
+        return self.makeRequest( taskUrl )
     
     def deleteTask( self, taskUrl ):
         """
-        Deletes a task.
+        Deletes the task located in `taskUrl`.
         """
-        return self.request( taskUrl, 'DELETE' )
+        return self.makeRequest( taskUrl, 'DELETE' )
         
     def postJob( self, **jobParams ):
         """
-        Posts a job to MobileWorks and returns the url of the created job.
+        Posts a job to MobileWorks and returns the URL of the created job.
         """
-        return self.request( self.job_url, 'POST', json.dumps( jobParams ) )['Location']
+        return self.makeRequest( self.job_url, 'POST', json.dumps( jobParams ) )['Location']
     
     def retrieveJob( self, jobUrl ):
         """
-        Gets the result of the job located in `jobUrl`.
+        Gets the information of the job located in `jobUrl`.
         """
-        return self.request( jobUrl )
+        return self.makeRequest( jobUrl )
     
     def deleteJob( self, jobUrl ):
         """
-        Deletes a job.
+        Deletes the job located in `jobUrl`.
         """
-        return self.request( jobUrl, 'DELETE' )
+        return self.makeRequest( jobUrl, 'DELETE' )
 
 def main():
     print 'hello!'
