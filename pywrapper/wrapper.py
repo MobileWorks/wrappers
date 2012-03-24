@@ -50,7 +50,7 @@ class Wrapper:
         
     def retrieveTask( self, taskUrl ):
         """
-        Gets the result for the task located in `taskUrl`.
+        Gets the result of the task located in `taskUrl`.
         """
         return json.loads( urllib2.urlopen( self.request( taskUrl ) ).read() )
     
@@ -58,11 +58,8 @@ class Wrapper:
         """
         Deletes a task.
         """
-        try:
-            response = urllib2.urlopen( self.request( taskUrl, 'DELETE' ) )
-            return response
-        except urllib2.HTTPError, e:
-            return e
+        response = urllib2.urlopen( self.request( taskUrl, 'DELETE' ) )
+        return response
         
     def postJob( self, **jobParams ):
         """
@@ -75,7 +72,7 @@ class Wrapper:
     
     def retrieveJob( self, jobUrl ):
         """
-        Gets the result for the job located in `jobUrl`.
+        Gets the result of the job located in `jobUrl`.
         """
         return json.loads( urllib2.urlopen( self.request( jobUrl ) ).read() )
     
@@ -83,11 +80,8 @@ class Wrapper:
         """
         Deletes a job.
         """
-        try:
-            response = urllib2.urlopen( self.request( jobUrl, 'DELETE' ) )
-            return response
-        except urllib2.HTTPError, e:
-            return e
+        response = urllib2.urlopen( self.request( jobUrl, 'DELETE' ) )
+        return response
 
 def main():
     print 'hello!'
