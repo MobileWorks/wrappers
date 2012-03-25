@@ -29,11 +29,11 @@ class MobileWorks:
     def __init__( self, username, password ):
         self.credentials = base64.encodestring( username + ':' + password )[:-1]
 
-    def makeRequest( self, url, method = None, postData = None ):
+    def make_request( self, url, method = None, post_data = None ):
         """
         Creates and sends an HTTP request.
         """
-        req = Request( url, method = method, data = postData )
+        req = Request( url, method = method, data = post_data )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         
         try:
@@ -47,45 +47,45 @@ class MobileWorks:
             else:
                 raise Exception( 'HTTP %d: %s' % ( e.code, e.read() ) )
     
-    def postTask( self, **taskParams ):
+    def post_task( self, **task_params ):
         """
         Posts a task to API and returns the URL of the created task.
         """
-        return self.makeRequest( self.task_url, 'POST', json.dumps( taskParams ) )['Location']
+        return self.make_request( self.task_url, 'POST', json.dumps( task_params ) )['Location']
         
-    def retrieveTask( self, taskUrl ):
+    def retrieve_task( self, task_url ):
         """
-        Gets the information of the task located in `taskUrl`.
+        Gets the information of the task located in `task_url`.
         """
-        return self.makeRequest( taskUrl )
+        return self.make_request( task_url )
     
-    def deleteTask( self, taskUrl ):
+    def delete_task( self, task_url ):
         """
-        Deletes the task located in `taskUrl`.
+        Deletes the task located in `task_url`.
         """
-        return self.makeRequest( taskUrl, 'DELETE' )
+        return self.make_request( task_url, 'DELETE' )
         
-    def postJob( self, **jobParams ):
+    def post_job( self, **job_params ):
         """
         Posts a job to API and returns the URL of the created job.
         """
-        return self.makeRequest( self.job_url, 'POST', json.dumps( jobParams ) )['Location']
+        return self.make_request( self.job_url, 'POST', json.dumps( job_params ) )['Location']
     
-    def retrieveJob( self, jobUrl ):
+    def retrieve_job( self, job_url ):
         """
-        Gets the information of the job located in `jobUrl`.
+        Gets the information of the job located in `job_url`.
         """
-        return self.makeRequest( jobUrl )
+        return self.make_request( job_url )
     
-    def deleteJob( self, jobUrl ):
+    def delete_job( self, job_url ):
         """
-        Deletes the job located in `jobUrl`.
+        Deletes the job located in `job_url`.
         """
-        return self.makeRequest( jobUrl, 'DELETE' )
+        return self.make_request( job_url, 'DELETE' )
 
 
 def example():
-    mw = API( 'username', 'password' )
-    taskLocation = mw.postTask( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
-    task = mw.retrieveTask( taskLocation )
+    mw = MobileWorks( 'username', 'password' )
+    taskLocation = mw.post_task( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
+    task = mw.retrieve_task( taskLocation )
     print task
