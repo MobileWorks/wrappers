@@ -79,7 +79,7 @@ class API:
 
 
 def example():
-    mw = API( 'prayag', 'root' )
+    mw = API( 'username', 'password' )
     taskLocation = mw.postTask( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
     task = mw.retrieveTask( taskLocation )
     print task
