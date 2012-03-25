@@ -33,10 +33,17 @@ class MobileWorks:
     def makeRequest( self, url, method = None, postData = None ):
         req = Request( url, method = method, data = postData )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
-        response = urllib2.urlopen( req )
-        content = response.read()
-        response.close()
-        return json.loads( content )
+        
+        try:
+            response = urllib2.urlopen( req )
+            content = response.read()
+            response.close()
+            return json.loads( content )
+        except urllib2.HTTPError, e:
+            if e.code >= 500:
+                raise Exception( 'HTTP %d: A server error occured' % e.code )
+            else:
+                raise Exception( 'HTTP %d: %s' % ( e.code, e.read() ) )
     
     def postTask( self, **taskParams ):
         """
