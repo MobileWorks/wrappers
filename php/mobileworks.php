@@ -50,10 +50,10 @@ class MobileWorks {
 		echo $httpCode, PHP_EOL;
 		curl_close( $req );
 		if ( $httpCode >= 500 ) {
-			throw new Exception( 'A server error occured with the HTTP code: ' . $httpCode );
+			throw new Exception( "HTTP $httpCode: A server error occured" );
 		}
 		if ( $httpCode >= 300 ) {
-			throw new Exception( "$httpCode: $result" );
+			throw new Exception( "HTTP $httpCode: $result" );
 		}
 		return get_object_vars( json_decode( $result ) );
 	}
