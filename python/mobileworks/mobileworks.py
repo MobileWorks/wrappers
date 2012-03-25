@@ -1,11 +1,10 @@
-
-# Should I return the location or the whole json after posting?
-# error handling, what's best?
-
 import urllib2, json, base64
 
 
 class Request( urllib2.Request ):
+    """
+    This class is used to allow urllib2 to send DELETE requests.
+    """
     
     def __init__( self, url, data = None, headers = {},
                  origin_req_host = None, unverifiable = False, method = None ):
@@ -18,19 +17,16 @@ class Request( urllib2.Request ):
 
 class MobileWorks:
     
-    PRODUCTION = False
+    task_url = 'https://work.mobileworks.com/api/v2/task/'
+    job_url = 'https://work.mobileworks.com/api/v2/job/'
     
     def __init__( self, username, password ):
         self.credentials = base64.encodestring( username + ':' + password )[:-1]
-        if self.PRODUCTION:
-            self.task_url = 'https://work.mobileworks.com/api/v2/task/'
-            self.job_url = 'https://work.mobileworks.com/api/v2/job/'
-        else:
-            self.task_url = 'https://staging.mobileworks.com/api/v2/task/'
-            self.job_url = 'https://staging.mobileworks.com/api/v2/job/'
-        
 
     def makeRequest( self, url, method = None, postData = None ):
+        """
+        Creates and sends an HTTP request.
+        """
         req = Request( url, method = method, data = postData )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         
@@ -81,9 +77,7 @@ class MobileWorks:
         """
         return self.makeRequest( jobUrl, 'DELETE' )
 
-def main():
-    print 'hello!'
 
-if __name__ == '__main__':
-    main()
-    w = MobileWorks( 'prayag', 'root' )
+def example():
+    mw = MobileWorks( 'prayag', 'root' )
+    mw.postTask( instructions = 'instructions', resource = '' )
