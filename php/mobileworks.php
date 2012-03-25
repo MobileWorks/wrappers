@@ -4,23 +4,14 @@
 class MobileWorks {
 
 	private $credentials = '';
-	const PRODUCTION = false;
-
-	private $task_url, $job_url;
+	private $task_url = 'https://work.mobileworks.com/api/v2/task/';
+	private $job_url = 'https://work.mobileworks.com/api/v2/job/';
 
 	function __construct( $username, $password ) {
 		if ( !extension_loaded( 'curl' ) ) {
 			throw new Exception( 'CURL is not installed!' );
 		}
 		$this->credentials = "$username:$password";
-		if ( self::PRODUCTION ) {
-			$this->task_url = 'https://work.mobileworks.com/api/v2/task/';
-			$this->job_url = 'https://work.mobileworks.com/api/v2/job/';
-		}
-		else {
-			$this->task_url = 'https://staging.mobileworks.com/api/v2/task/';
-			$this->job_url = 'https://staging.mobileworks.com/api/v2/job/';
-		}
 	}
 
 	/**
@@ -115,26 +106,3 @@ class MobileWorks {
 	}
 
 }
-
-//$mw = new MobileWorks( 'prayag', 'root' );
-//$jobParams = array(
-//	'instructions' => 'some instructions',
-//	'fields' => array(
-//		array( 'Name' => 't' ),
-//		array( 'Admin Email' => 'e' ),
-//		array( 'Alexa Rank' => 'n' ),
-//	),
-//	'tasks' => array(
-//		array( 'resource' => 'http://www.google.com/' ),
-//		array( 'resource' => 'http://www.facebook.com/' ),
-//		array( 'resource' => 'http://www.youtube.com/' ),
-//	),
-//);
-//$job = $mw->postJob( $jobParams );
-//print $job;
-
-//print_r( $mw->retrieveJob( 'https://staging.mobileworks.com/api/v2/job/33/' ) );
-//print_r( $mw->deleteJob( 'https://staging.mobileworks.com/api/v2/job/33/' ) );
-
-//print_r( $mw->retrieveTask( 'https://staging.mobileworks.com/api/v2/task/105/' ) );
-//print_r( $mw->deleteTask( 'https://staging.mobileworks.com/api/v2/task/89/' ) );
