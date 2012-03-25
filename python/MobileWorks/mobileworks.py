@@ -3,11 +3,17 @@ import urllib2, json, base64
 
 class Request( urllib2.Request ):
     """
-    This class is used to allow urllib2 to send DELETE requests.
+    This class is used to allow urllib2 to send requests other than GET/POST.
     """
     
     def __init__( self, url, data = None, headers = {},
                  origin_req_host = None, unverifiable = False, method = None ):
+        """
+        These parameters (excpet `method`) are the same as the parameters in the parent class `urllib2.Request`, which can be found here:
+        http://docs.python.org/library/urllib2.html#urllib2.Request
+        
+        The `method` parameter was added to allow HTTP requests other than GET/POST.
+        """
         self._method = method
         urllib2.Request.__init__( self, url, data, headers, origin_req_host, unverifiable )
     

@@ -1,13 +1,9 @@
 from distutils.core import setup
 
 setup( 
-    name = 'MobileWorks',
-    version = '0.1.0',
-    author = 'Mouad Debbar',
-    author_email = 'mouad@mobileworks.com',
+    name = 'mobileworks',
+    version = '0.1.1',
     py_modules = ['mobileworks'],
-#    url = 'http://pypi.python.org/pypi/TowelStuff/',
-#    license = 'LICENSE.txt',
+    url = 'http://www.mobileworks.com/',
     description = 'A wrapper for the MobileWorks API.',
-#    long_description = open( 'README.txt' ).read(),
  )
