@@ -21,7 +21,7 @@ class Request( urllib2.Request ):
         return self._method if self._method else urllib2.Request.get_method( self )
     
 
-class API:
+class MobileWorks:
     
     task_url = 'https://work.mobileworks.com/api/v2/task/'
     job_url = 'https://work.mobileworks.com/api/v2/job/'
