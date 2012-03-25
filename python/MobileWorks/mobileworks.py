@@ -15,7 +15,7 @@ class Request( urllib2.Request ):
         return self._method if self._method else urllib2.Request.get_method( self )
     
 
-class MobileWorks:
+class API:
     
     task_url = 'https://work.mobileworks.com/api/v2/task/'
     job_url = 'https://work.mobileworks.com/api/v2/job/'
@@ -43,7 +43,7 @@ class MobileWorks:
     
     def postTask( self, **taskParams ):
         """
-        Posts a task to MobileWorks and returns the URL of the created task.
+        Posts a task to API and returns the URL of the created task.
         """
         return self.makeRequest( self.task_url, 'POST', json.dumps( taskParams ) )['Location']
         
@@ -61,7 +61,7 @@ class MobileWorks:
         
     def postJob( self, **jobParams ):
         """
-        Posts a job to MobileWorks and returns the URL of the created job.
+        Posts a job to API and returns the URL of the created job.
         """
         return self.makeRequest( self.job_url, 'POST', json.dumps( jobParams ) )['Location']
     
@@ -79,5 +79,7 @@ class MobileWorks:
 
 
 def example():
-    mw = MobileWorks( 'prayag', 'root' )
-    mw.postTask( instructions = 'instructions', resource = '' )
+    mw = API( 'prayag', 'root' )
+    taskLocation = mw.postTask( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
+    task = mw.retrieveTask( taskLocation )
+    print task
