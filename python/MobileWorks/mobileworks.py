@@ -1,33 +1,34 @@
 import urllib2, json, base64
 
-
-class Request( urllib2.Request ):
-    """
-    This class is used to allow urllib2 to send requests other than GET/POST.
-    """
-    
-    def __init__( self, url, data = None, headers = {},
-                 origin_req_host = None, unverifiable = False, method = None ):
-        """
-        These parameters (excpet `method`) are the same as the parameters in the parent class `urllib2.Request`, which can be found here:
-        http://docs.python.org/library/urllib2.html#urllib2.Request
-        
-        The `method` parameter was added to allow HTTP requests other than GET/POST.
-        """
-        self._method = method
-        urllib2.Request.__init__( self, url, data, headers, origin_req_host, unverifiable )
-    
-    def get_method( self ):
-        return self._method if self._method else urllib2.Request.get_method( self )
-    
-
 class MobileWorks:
     
-    task_url = 'https://work.mobileworks.com/api/v2/task/'
-    job_url = 'https://work.mobileworks.com/api/v2/job/'
+    class Request( urllib2.Request ):
+        """
+        This class is an extension of urllib2.Request that allows requests other than GET/POST.
+        """
+        
+        def __init__( self, url, data = None, headers = {},
+                     origin_req_host = None, unverifiable = False, method = None ):
+            """
+            These parameters (except `method`) are the same as the parameters in the parent class `urllib2.Request`, which can be found here:
+            http://docs.python.org/library/urllib2.html#urllib2.Request
+            
+            The `method` parameter was added to allow HTTP requests other than GET/POST.
+            """
+            self._method = method
+            urllib2.Request.__init__( self, url, data, headers, origin_req_host, unverifiable )
+        
+        def get_method( self ):
+            return self._method if self._method else urllib2.Request.get_method( self )
+    
+    task_url = 'https://staging.mobileworks.com/api/v2/task/'
+    job_url = 'https://staging.mobileworks.com/api/v2/job/'
+    
+#    task_url = 'https://work.mobileworks.com/api/v2/task/'
+#    job_url = 'https://work.mobileworks.com/api/v2/job/'
     
     def __init__( self, username, password ):
-        self.credentials = base64.encodestring( username + ':' + password )[:-1]
+        self.credentials = self.base64.encodestring( username + ':' + password )[:-1]
 
     def __make_request( self, url, method = None, post_data = None ):
         """
@@ -85,7 +86,8 @@ class MobileWorks:
 
 
 def example():
-    mw = MobileWorks( 'username', 'password' )
+    mw = MobileWorks( 'prayag', 'root' )
     taskLocation = mw.post_task( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
     task = mw.retrieve_task( taskLocation )
     print task
+    return mw
