@@ -21,20 +21,17 @@ class MobileWorks:
         def get_method( self ):
             return self._method if self._method else urllib2.Request.get_method( self )
     
-    task_url = 'https://staging.mobileworks.com/api/v2/task/'
-    job_url = 'https://staging.mobileworks.com/api/v2/job/'
-    
-#    task_url = 'https://work.mobileworks.com/api/v2/task/'
-#    job_url = 'https://work.mobileworks.com/api/v2/job/'
+    task_url = 'https://work.mobileworks.com/api/v2/task/'
+    job_url = 'https://work.mobileworks.com/api/v2/job/'
     
     def __init__( self, username, password ):
-        self.credentials = self.base64.encodestring( username + ':' + password )[:-1]
+        self.credentials = base64.encodestring( username + ':' + password )[:-1]
 
     def __make_request( self, url, method = None, post_data = None ):
         """
         Creates and sends an HTTP request.
         """
-        req = Request( url, method = method, data = post_data )
+        req = MobileWorks.Request( url, method = method, data = post_data )
         req.add_header( 'Authorization', 'Basic ' + self.credentials )
         
         try:
@@ -83,11 +80,3 @@ class MobileWorks:
         Deletes the job located in `job_url`.
         """
         return self.__make_request( job_url, 'DELETE' )
-
-
-def example():
-    mw = MobileWorks( 'prayag', 'root' )
-    taskLocation = mw.post_task( instructions = 'instructions', resource = '', field = [{'Name':'t'}] )
-    task = mw.retrieve_task( taskLocation )
-    print task
-    return mw
