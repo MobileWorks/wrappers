@@ -1,6 +1,11 @@
 import urllib2, json, base64
 
-class MobileWorks:
+
+class _API:
+    """
+    This is the base class for Task/Job.
+    It contains the general methods for making API calls to MobileWorks
+    """
     
     class Request( urllib2.Request ):
         """
@@ -20,19 +25,16 @@ class MobileWorks:
         
         def get_method( self ):
             return self._method if self._method else urllib2.Request.get_method( self )
-    
-    task_url = 'https://work.mobileworks.com/api/v2/task/'
-    job_url = 'https://work.mobileworks.com/api/v2/job/'
-    
-    def __init__( self, username, password ):
-        self.credentials = base64.encodestring( username + ':' + password )[:-1]
-
-    def __make_request( self, url, method = None, post_data = None ):
+        
+    @classmethod
+    def _make_request( cls, url, method = None, post_data = None ):
         """
         Creates and sends an HTTP request.
         """
-        req = MobileWorks.Request( url, method = method, data = post_data )
-        req.add_header( 'Authorization', 'Basic ' + self.credentials )
+        if MobileWorks.credentials is None:
+            raise Exception( 'You are not logged in.' )
+        req = cls.Request( url, method = method, data = post_data )
+        req.add_header( 'Authorization', 'Basic ' + MobileWorks.credentials )
         
         try:
             response = urllib2.urlopen( req )
@@ -45,38 +47,137 @@ class MobileWorks:
             else:
                 raise Exception( 'HTTP %d: %s' % ( e.code, e.read() ) )
     
-    def post_task( self, **task_params ):
+    PATH = ''
+    
+    def url( self ):
+        return MobileWorks.DOMAIN + self.PATH
+    
+    def dict( self ):
         """
-        Posts a task to API and returns the URL of the created task.
+        This is used for json serialization.
+        It should be overriden by subclasses.
         """
-        return self.__make_request( self.task_url, 'POST', json.dumps( task_params ) )['Location']
+        return self.__dict__
+    
+    def to_json(self):
+        return json.dumps( self.dict() )
+    
+    def post( self ):
+        """
+        Posts the object to MobileWorks API and returns the URL of the created object.
+        """
+        return self._make_request( self.url(), 'POST', self.to_json() )['Location']
+    
+    @classmethod
+    def retrieve( cls, url ):
+        """
+        Gets the information of the object located at `url`.
+        """
+        return cls._make_request( url )
+    
+    @classmethod
+    def delete( cls, url ):
+        """
+        Deletes the object located at `url`.
+        """
+        return cls._make_request( url, 'DELETE' )
+    
+
+class Task(_API):
+    
+    PATH = 'api/v2/task/'
+    
+    def __init__( self, **task_params ):
+        self.params = task_params
+        self.fields = None
         
-    def retrieve_task( self, task_url ):
+    def set_params( self, **params ):
         """
-        Gets the information of the task located in `task_url`.
+        Sets parameters of this task.
         """
-        return self.__make_request( task_url )
+        self.params.update( params )
     
-    def delete_task( self, task_url ):
+    def add_field( self, name, type, **kwargs ):
         """
-        Deletes the task located in `task_url`.
+        Adds a field to this task.
         """
-        return self.__make_request( task_url, 'DELETE' )
+        if self.fields is None:
+            self.fields = []
+            
+        field = {name: type}
+        if kwargs:
+            field.update( kwargs )
+        self.fields.append( field )
         
-    def post_job( self, **job_params ):
-        """
-        Posts a job to API and returns the URL of the created job.
-        """
-        return self.__make_request( self.job_url, 'POST', json.dumps( job_params ) )['Location']
+    def dict( self ):
+        dic = self.params.copy()
+        if self.fields is not None:
+            dic.update( {'fields': self.fields} )
+        return dic
+        
     
-    def retrieve_job( self, job_url ):
-        """
-        Gets the information of the job located in `job_url`.
-        """
-        return self.__make_request( job_url )
+class Job(_API):
     
-    def delete_job( self, job_url ):
+    PATH = 'api/v2/job/'
+    
+    def __init__( self, **job_params ):
+        self.params = job_params
+        self.tasks = []
+        
+    def set_params( self, **params ):
         """
-        Deletes the job located in `job_url`.
+        Sets parameters of this job.
         """
-        return self.__make_request( job_url, 'DELETE' )
+        self.params.update( params )
+        
+    def add_task( self, task ):
+        """
+        Adds a task to this job.
+        """
+        if task.__class__ == Task:
+            self.tasks.append( task )
+        else:
+            raise ValueError( "`task` must be an instance of the Task class" )
+    
+    def dict( self ):
+        dic = self.params.copy()
+        dic.update( {'tasks': [t.dict() for t in self.tasks]} )
+        return dic
+    
+
+class MobileWorks:
+    """
+    This class is used to login to MobileWorks and keeps track of the user credentials and
+    the DOMAIN used for the API. 
+    """
+    
+    credentials = None
+    DOMAIN = 'https://work.mobileworks.com/'
+    PROFILE_PATH = 'api/v1/userprofile/?format=json'
+    
+    @classmethod
+    def login( cls, username, password ):
+        cls.credentials = base64.encodestring( username + ':' + password )[:-1]
+        try:
+            return _API._make_request(cls.DOMAIN + cls.PROFILE_PATH)['objects'][0]
+        except Exception, e:
+            print e
+            cls.credentials = None
+            raise Exception( "Couldn't login. To reset your password, please go to: " + cls.DOMAIN + 'accounts/password_reset/' )
+    
+        
+    @classmethod
+    def local(cls, port = 8000):
+        cls.DOMAIN = 'http://localhost:%d/' % port
+    
+    @classmethod    
+    def staging(cls):
+        cls.DOMAIN = 'https://staging.mobileworks.com/'
+        
+    @classmethod
+    def sandbox(cls):
+        cls.DOMAIN = 'https://sandbox.mobileworks.com/'
+        
+    @classmethod
+    def production(cls):
+        cls.DOMAIN = 'https://work.mobileworks.com/'
