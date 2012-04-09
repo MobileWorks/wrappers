@@ -163,7 +163,7 @@ class MobileWorks:
         except Exception, e:
             print e
             cls.credentials = None
-            raise Exception( "Couldn't login" )
+            raise Exception( "Couldn't login. To reset your password, please go to: " + cls.DOMAIN + 'accounts/password_reset/' )
     
         
     @classmethod
