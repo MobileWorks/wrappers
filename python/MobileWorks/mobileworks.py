@@ -172,6 +172,7 @@ class Job(_API):
         else:
             self.params = job_params
             self.tasks = []
+            self.test_tasks = None
             self.fields = None
         
     def _load( self ):
@@ -181,6 +182,12 @@ class Job(_API):
             del self.params['tasks']
         else:
             self.tasks = []
+            
+        if 'tests' in self.params:
+            self.test_tasks = self.params['tests']
+            del self.params['tests']
+        else:
+            self.test_tasks = None
             
         if 'fields' in self.params:
             self.fields = self.params['fields']
@@ -218,6 +225,17 @@ class Job(_API):
             self.tasks.append( task )
         else:
             raise ValueError( "`task` must be an instance of the Task class" )
+        
+    def add_test_task( self, test_task ):
+        """
+        Adds a test task to this job.
+        """
+        if test_task.__class__ == Task:
+            if self.test_tasks is None:
+                self.test_tasks = []
+            self.test_tasks.append( test_task )
+        else:
+            raise ValueError( "`test_task` must be an instance of the Task class" )
     
     def add_field( self, name, type, **kwargs ):
         """
@@ -240,9 +258,14 @@ class Job(_API):
             dic.update( {'fields': self.fields} )
         if self.tasks is not None:
             tasks = self.tasks
-            if len( self.tasks ) and self.tasks[0].__class__ == Task:
+            if len( tasks ) and tasks[0].__class__ == Task:
                 tasks = [t.dict() for t in tasks]
             dic.update( {'tasks': tasks} )
+        if self.test_tasks is not None:
+            tasks = self.test_tasks
+            if len( tasks ) and tasks[0].__class__ == Task:
+                tasks = [t.dict() for t in tasks]
+            dic.update( {'tests': tasks} )
         return dic
     
 
