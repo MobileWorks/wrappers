@@ -90,10 +90,10 @@ class _API:
         """
         if self.location is None:
             raise Exception( "This object doen't point to any resource on the server." )
-        headers, content = self._make_request( url, 'DELETE' )
-        if cls.VERSION == 1:
+        headers, content = self._make_request( self.location, 'DELETE' )
+        if self.VERSION == 1:
             return True
-        elif cls.VERSION == 2:
+        elif self.VERSION == 2:
             return json.loads( content )
     
 
