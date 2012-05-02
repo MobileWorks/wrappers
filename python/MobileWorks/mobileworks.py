@@ -77,14 +77,15 @@ def _authenticate():
     This will authenticate the user if he is not already authenticated.
     '''
     global _credentials
+    if not username or not password:
+        raise Exception( 'Please provide a username and password.' )
     new_credentials = base64.encodestring( username + ':' + password )[:-1]
     if not _credentials or _credentials != new_credentials:
-        if not username or not password:
-            raise Exception( 'Please provide a username and password.' )
         _credentials = new_credentials
         try:
             PROFILE_PATH = 'api/v1/userprofile/'
             headers, content = _make_request(_domain + PROFILE_PATH)
+            _store_credentials()
         except Exception, e:
             print e
             _credentials = None
@@ -298,3 +299,15 @@ class Job(_API):
                 tasks = [t.dict() for t in tasks]
             dic.update( {'tests': tasks} )
         return dic
+
+class Project(Job):
+    
+    def _path( self ):
+        """
+        Returns the base path of projects depending on the API version.
+        """
+        if _version == 1:
+            return 'api/v1/project/'
+        elif _version == 2:
+            return 'api/v2/project/'
+        raise Exception( 'Sorry, version %d is not supported by the library yet!' % _version )
