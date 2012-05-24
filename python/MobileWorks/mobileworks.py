@@ -17,7 +17,7 @@ def sandbox():
 
 # setting the domain to the production server
 _domain = None
-production()
+sandbox()
 
 
 _version = 2
