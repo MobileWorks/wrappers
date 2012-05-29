@@ -191,7 +191,7 @@ class _API:
         Deletes the object located at `url`.
         """
         if self.location is None:
-            raise Exception( "This object doen't point to any resource on the server." )
+            raise Exception( "This object doesn't point to any resource on the server." )
         headers, content = _make_request( self.location, 'DELETE' )
         if _version == 1:
             return True
@@ -277,7 +277,7 @@ class Job(_API):
         Adds a test task to this job.
         """
         try:
-            task.dict
+            test_task.dict
             if not self.test_tasks:
                 self.test_tasks = []
             self.test_tasks.append( test_task )
