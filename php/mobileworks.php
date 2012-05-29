@@ -10,17 +10,14 @@ class MobileWorks {
 	public $domain = '';
 
 	// the API version to be used
-	public $_version = 2;
+	protected $_version = 2;
 
 	// username/password
 	public $username = '', $password = '';
 
 	protected $PROFILE_PATH = 'api/v1/userprofile/';
 
-	private $task_url = 'https://work.mobileworks.com/api/v2/task/';
-	private $job_url = 'https://work.mobileworks.com/api/v2/job/';
-
-	function __construct() {
+	public function __construct() {
 		// This library depends on CURL for making HTTP requests
 		if ( !extension_loaded( 'curl' ) ) {
 			throw new Exception( 'CURL is not installed!' );
@@ -28,24 +25,14 @@ class MobileWorks {
 		$this->sandbox();
 	}
 
-	/**
-	 * Sets the target to the production server.
-	 */
 	public function production() {
 		$this->domain = 'https://work.mobileworks.com/';
 	}
 
-	/**
-	 * Sets the target to the sandbox server.
-	 */
 	public function sandbox() {
 		$this->domain = 'https://sandbox.mobileworks.com/';
 	}
 
-	/**
-	 * Set the version of the API to be used.
-	 * If no argument is provided, this will return the current used version.
-	 */
 	public function version( $v = null ) {
 		if ( is_null( $v ) ) {
 			return $this->_version;
@@ -55,10 +42,7 @@ class MobileWorks {
 		}
 	}
 
-	/**
-	 * This will authenticate the user if he is not already authenticated.
-	 */
-	protected function authenticate() {
+	function authenticate() {
 		if ( empty( $this->username ) || empty( $this->password ) ) {
 			throw new Exception( 'Please provide a username and password.' );
 		}
@@ -156,7 +140,7 @@ class Task {
 
 	protected $mw = null;
 
-	public  $location = null;
+	public $location = null;
 
 	protected $params = array();
 
