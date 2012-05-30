@@ -277,7 +277,7 @@ class Job(_API):
         Adds a test task to this job.
         """
         try:
-            task.dict
+            test_task.dict
             if not self.test_tasks:
                 self.test_tasks = []
             self.test_tasks.append( test_task )
