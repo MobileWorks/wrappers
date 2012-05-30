@@ -210,6 +210,7 @@ class _API:
             url = location
         headers, content = _make_request( url )
         new_obj = cls()
+        new_obj.location = url
         new_obj.from_json( content )
         return new_obj
     
