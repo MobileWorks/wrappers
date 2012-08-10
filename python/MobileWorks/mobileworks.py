@@ -130,7 +130,23 @@ class _API:
     """
     
     location = None
+    params = {}
     fields = None
+    
+    def __init__( self, **task_params ):
+        self.params = task_params
+    
+    def get_param( self, name ):
+        """
+        Gets the specified parameter.
+        """
+        return self.params[name]
+        
+    def set_params( self, **params ):
+        """
+        Updates the parameters with whatever is specified by the keyword arguments.
+        """
+        self.params.update( params )
     
     def url( self ):
         return _domain + self._path()
@@ -142,8 +158,17 @@ class _API:
         """
         return self.__dict__
     
+    def from_dict( self, dic ):
+        self.params = dic
+    
     def to_json(self):
         return json.dumps( self.dict() )
+    
+    def from_json(self, JSON):
+        self.from_dict( json.loads( JSON ) )
+    
+    def __str__(self):
+        return self.to_json()
     
     def add_field( self, name, type, **kwargs ):
         """
@@ -184,7 +209,10 @@ class _API:
             # `location` is just a url
             url = location
         headers, content = _make_request( url )
-        return json.loads( content )
+        new_obj = cls()
+        new_obj.location = url
+        new_obj.from_json( content )
+        return new_obj
     
     def delete( self ):
         """
@@ -201,9 +229,6 @@ class _API:
 
 class Task(_API):
     
-    def __init__( self, **task_params ):
-        self.params = task_params
-        
     def _path( self ):
         """
         Returns the base path of tasks depending on the API version.
@@ -214,18 +239,6 @@ class Task(_API):
             return 'api/v2/task/'
         raise Exception( 'Sorry, version %d is not supported by the library yet!' % _version )
         
-    def get_param( self, name ):
-        """
-        Gets the specified parameter from this task.
-        """
-        return self.params[name]
-        
-    def set_params( self, **params ):
-        """
-        Sets parameters of this task as keyword arguments.
-        """
-        self.params.update( params )
-    
     def dict( self ):
         dic = self.params.copy()
         if self.fields is not None:
@@ -250,18 +263,6 @@ class Job(_API):
             return 'api/v2/job/'
         raise Exception( 'Sorry, version %d is not supported by the library yet!' % _version )
         
-    def get_param( self, name ):
-        """
-        Gets the specified parameter from this job.
-        """
-        return self.params[name]
-
-    def set_params( self, **params ):
-        """
-        Sets parameters of this job as keyword arguments.
-        """
-        self.params.update( params )
-        
     def add_task( self, task ):
         """
         Adds a task to this job.
@@ -277,7 +278,7 @@ class Job(_API):
         Adds a test task to this job.
         """
         try:
-            task.dict
+            test_task.dict
             if not self.test_tasks:
                 self.test_tasks = []
             self.test_tasks.append( test_task )
@@ -299,6 +300,18 @@ class Job(_API):
                 tasks = [t.dict() for t in tasks]
             dic.update( {'tests': tasks} )
         return dic
+    
+    def from_dict( self, dic ):
+        local_dic = dic.copy()
+        if 'tasks' in local_dic:
+            for task in local_dic['tasks']:
+                new_task = Task()
+                new_task.from_dict( task )
+                self.tasks.append( new_task )
+            del local_dic['tasks']
+            self.params = local_dic
+        
+    
 
 class Project(Job):
     
