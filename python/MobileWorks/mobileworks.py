@@ -246,6 +246,19 @@ class Task(_API):
         return dic
         
     
+    def _getResponsesUrl(self):
+        return self.location.replace( '/task/', '/response/' )
+    
+    def getResponses(self):
+        """
+        Returns a list of response objects.
+        """
+        headers, content = _make_request( self._getResponsesUrl() )
+        data = json.loads( content )
+        responses = data['results']
+        return [Response(self, r) for r in responses]
+    
+    
 class Job(_API):
     
     def __init__( self, **job_params ):
@@ -324,3 +337,29 @@ class Project(Job):
         elif _version == 2:
             return 'api/v2/project/'
         raise Exception( 'Sorry, version %d is not supported by the library yet!' % _version )
+
+
+class Response(object):
+
+    task = None
+    params = {}
+    
+    def __init__(self, task, dic = None):
+        self.task = task
+        if dict is not None:
+            self.from_dict( dic )
+
+    def dict(self):
+        return self.params.copy()
+
+    def from_dict(self, dic):
+        self.params = dic
+
+    def to_json(self):
+        return json.dumps( self.dict() )
+
+    def from_json(self, JSON):
+        self.from_dict( json.loads( JSON ) )
+
+    def __str__(self):
+        return self.to_json()
