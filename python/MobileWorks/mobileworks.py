@@ -363,3 +363,34 @@ class Response(object):
 
     def __str__(self):
         return self.to_json()
+    
+    def _getDecisionUrl(self, approve):
+        """
+        Gets the url for taking a decision on this response.
+        """
+        suffix = 'approve/' if approve else 'reject/'
+        return self.task._getResponsesUrl() + self.params['workerId'] + '/' + suffix
+    
+    def _takeDecision(self, approve):
+        """
+        Takes an approval/rejection decision on this response.
+        It return True if the decision was accepted successfully.
+        """
+        url = self._getDecisionUrl( approve )
+        headers, content = _make_request( url, 'POST' )
+        try:
+            return json.loads( content )['success']
+        except (ValueError, TypeError, KeyError):
+            return False
+    
+    def approve(self):
+        """
+        Approve this response.
+        """
+        return self._takeDecision( True )
+    
+    def reject(self):
+        """
+        Reject this response.
+        """
+        return self._takeDecision( False )
