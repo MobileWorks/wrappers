@@ -219,7 +219,7 @@ class _API:
         Deletes the object located at `url`.
         """
         if self.location is None:
-            raise Exception( "This object doen't point to any resource on the server." )
+            raise Exception( "This object doesn't point to any resource on the server." )
         headers, content = _make_request( self.location, 'DELETE' )
         if _version == 1:
             return True
@@ -257,6 +257,41 @@ class Task(_API):
         data = json.loads( content )
         responses = data['results']
         return [Response(self, r) for r in responses]
+    
+    def _getDecisionUrl(self, approve):
+        """
+        Gets the url for taking a decision on this task.
+        """
+        suffix = 'approve/' if approve else 'reject/'
+        return self.location + suffix
+
+    def _takeDecision(self, approve):
+        """
+        Takes an approval/rejection decision on this task.
+        It return True if the decision was accepted successfully.
+        """
+        if self.location is None:
+            raise Exception( "This object doesn't point to any resource on the server." )
+        
+        url = self._getDecisionUrl( approve )
+        headers, content = _make_request( url, 'POST' )
+        try:
+            print content
+            return json.loads( content )['success']
+        except (ValueError, TypeError, KeyError):
+            return False
+
+    def approve(self):
+        """
+        Approve this task (this approves all results of this task).
+        """
+        return self._takeDecision( True )
+
+    def reject(self):
+        """
+        Reject this task (this rejects all results of this task).
+        """
+        return self._takeDecision( False )
     
     
 class Job(_API):
