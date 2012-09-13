@@ -275,11 +275,11 @@ class Task(_API):
         
         url = self._getDecisionUrl( approve )
         headers, content = _make_request( url, 'POST' )
-        try:
-            print content
-            return json.loads( content )['success']
-        except (ValueError, TypeError, KeyError):
-            return False
+        parsedContent = json.loads( content )
+        # if the decision fails, throw an exception
+        if not parsedContent['success']:
+            raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
+        return True
 
     def approve(self):
         """
@@ -413,10 +413,11 @@ class Response(object):
         """
         url = self._getDecisionUrl( approve )
         headers, content = _make_request( url, 'POST' )
-        try:
-            return json.loads( content )['success']
-        except (ValueError, TypeError, KeyError):
-            return False
+        parsedContent = json.loads( content )
+        # if the decision fails, throw an exception
+        if not parsedContent['success']:
+            raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
+        return True
     
     def approve(self):
         """
