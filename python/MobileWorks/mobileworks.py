@@ -219,7 +219,7 @@ class _API:
         Deletes the object located at `url`.
         """
         if self.location is None:
-            raise Exception( "This object doen't point to any resource on the server." )
+            raise Exception( "This object doesn't point to any resource on the server." )
         headers, content = _make_request( self.location, 'DELETE' )
         if _version == 1:
             return True
@@ -245,6 +245,54 @@ class Task(_API):
             dic.update( {'fields': self.fields} )
         return dic
         
+    
+    def _getResponsesUrl(self):
+        return self.location.replace( '/task/', '/response/' )
+    
+    def getResponses(self):
+        """
+        Returns a list of response objects.
+        """
+        headers, content = _make_request( self._getResponsesUrl() )
+        data = json.loads( content )
+        responses = data['results']
+        return [Response(self, r) for r in responses]
+    
+    def _getDecisionUrl(self, approve):
+        """
+        Gets the url for taking a decision on this task.
+        """
+        suffix = 'approve/' if approve else 'reject/'
+        return self.location + suffix
+
+    def _takeDecision(self, approve):
+        """
+        Takes an approval/rejection decision on this task.
+        It return True if the decision was accepted successfully.
+        """
+        if self.location is None:
+            raise Exception( "This object doesn't point to any resource on the server." )
+        
+        url = self._getDecisionUrl( approve )
+        headers, content = _make_request( url, 'POST' )
+        parsedContent = json.loads( content )
+        # if the decision fails, throw an exception
+        if not parsedContent['success']:
+            raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
+        return True
+
+    def approve(self):
+        """
+        Approve this task (this approves all results of this task).
+        """
+        return self._takeDecision( True )
+
+    def reject(self):
+        """
+        Reject this task (this rejects all results of this task).
+        """
+        return self._takeDecision( False )
+    
     
 class Job(_API):
     
@@ -324,3 +372,61 @@ class Project(Job):
         elif _version == 2:
             return 'api/v2/project/'
         raise Exception( 'Sorry, version %d is not supported by the library yet!' % _version )
+
+
+class Response(object):
+
+    task = None
+    params = {}
+    
+    def __init__(self, task, dic = None):
+        self.task = task
+        if dict is not None:
+            self.from_dict( dic )
+
+    def dict(self):
+        return self.params.copy()
+
+    def from_dict(self, dic):
+        self.params = dic
+
+    def to_json(self):
+        return json.dumps( self.dict() )
+
+    def from_json(self, JSON):
+        self.from_dict( json.loads( JSON ) )
+
+    def __str__(self):
+        return self.to_json()
+    
+    def _getDecisionUrl(self, approve):
+        """
+        Gets the url for taking a decision on this response.
+        """
+        suffix = 'approve/' if approve else 'reject/'
+        return self.task._getResponsesUrl() + self.params['workerId'] + '/' + suffix
+    
+    def _takeDecision(self, approve):
+        """
+        Takes an approval/rejection decision on this response.
+        It return True if the decision was accepted successfully.
+        """
+        url = self._getDecisionUrl( approve )
+        headers, content = _make_request( url, 'POST' )
+        parsedContent = json.loads( content )
+        # if the decision fails, throw an exception
+        if not parsedContent['success']:
+            raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
+        return True
+    
+    def approve(self):
+        """
+        Approve this response.
+        """
+        return self._takeDecision( True )
+    
+    def reject(self):
+        """
+        Reject this response.
+        """
+        return self._takeDecision( False )
