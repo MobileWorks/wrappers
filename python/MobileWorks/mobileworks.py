@@ -265,7 +265,7 @@ class Task(_API):
         suffix = 'approve/' if approve else 'reject/'
         return self.location + suffix
 
-    def _takeDecision(self, approve):
+    def _takeDecision(self, approve, reason):
         """
         Takes an approval/rejection decision on this task.
         It return True if the decision was accepted successfully.
@@ -274,24 +274,25 @@ class Task(_API):
             raise Exception( "This object doesn't point to any resource on the server." )
         
         url = self._getDecisionUrl( approve )
-        headers, content = _make_request( url, 'POST' )
+        postJson = json.dumps({'reason': reason})
+        headers, content = _make_request( url, 'POST', postJson )
         parsedContent = json.loads( content )
         # if the decision fails, throw an exception
         if not parsedContent['success']:
             raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
         return True
 
-    def approve(self):
+    def approve(self, reason = None):
         """
         Approve this task (this approves all results of this task).
         """
-        return self._takeDecision( True )
+        return self._takeDecision( True, reason )
 
-    def reject(self):
+    def reject(self, reason = None):
         """
         Reject this task (this rejects all results of this task).
         """
-        return self._takeDecision( False )
+        return self._takeDecision( False, reason )
     
     
 class Job(_API):
@@ -404,29 +405,30 @@ class Response(object):
         Gets the url for taking a decision on this response.
         """
         suffix = 'approve/' if approve else 'reject/'
-        return self.task._getResponsesUrl() + self.params['workerId'] + '/' + suffix
+        return self.task._getResponsesUrl() + str( self.params['workerId'] ) + '/' + suffix
     
-    def _takeDecision(self, approve):
+    def _takeDecision(self, approve, reason):
         """
         Takes an approval/rejection decision on this response.
         It return True if the decision was accepted successfully.
         """
         url = self._getDecisionUrl( approve )
-        headers, content = _make_request( url, 'POST' )
+        postJson = json.dumps({'reason': reason})
+        headers, content = _make_request( url, 'POST', postJson )
         parsedContent = json.loads( content )
         # if the decision fails, throw an exception
         if not parsedContent['success']:
             raise Exception( parsedContent.get( 'error', "Failed: server didn't provide any failure info." ) )
         return True
     
-    def approve(self):
+    def approve(self, reason = None):
         """
         Approve this response.
         """
-        return self._takeDecision( True )
+        return self._takeDecision( True, reason )
     
-    def reject(self):
+    def reject(self, reason = None):
         """
         Reject this response.
         """
-        return self._takeDecision( False )
+        return self._takeDecision( False, reason )
