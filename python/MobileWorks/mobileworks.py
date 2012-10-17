@@ -356,6 +356,7 @@ class Job(_API):
             for task in local_dic['tasks']:
                 new_task = Task()
                 new_task.from_dict( task )
+                new_task.location = new_task.url() + urllib2.quote( str( task['taskid'] ) ) + '/'
                 self.tasks.append( new_task )
             del local_dic['tasks']
             self.params = local_dic
